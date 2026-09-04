@@ -1,0 +1,50 @@
+name: Generate Pact
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  generate-pact:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
+
+      - name: Restore
+        run: dotnet restore
+
+      - name: Build
+        run: dotnet build --configuration Release --no-restore
+
+      - name: Run consumer contract tests
+        run: dotnet test --configuration Release --no-build --logger "console;verbosity=normal"
+
+      - name: Confirm Pact file was generated
+        run: test -f pacts/dotnet-consumer-customer-provider.json
+
+      - name: Commit generated Pact files
+        if: github.event_name == 'push' && !startsWith(github.event.head_commit.message, 'chore: update generated Pact files')
+        run: |
+          if git diff --quiet -- pacts/*.json; then
+            echo "No Pact changes to commit."
+            exit 0
+          fi
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add pacts/*.json
+          git commit -m "chore: update generated Pact files"
+          git push

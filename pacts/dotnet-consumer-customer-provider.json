@@ -1,0 +1,56 @@
+{
+  "consumer": {
+    "name": "dotnet-consumer"
+  },
+  "interactions": [
+    {
+      "description": "A request for customer 123",
+      "request": {
+        "method": "GET",
+        "path": "/customers/123"
+      },
+      "response": {
+        "body": {
+          "email": "john@example.com",
+          "id": 123
+        },
+        "headers": {
+          "Content-Type": "application/json; charset=utf-8"
+        },
+        "matchingRules": {
+          "body": {
+            "$.email": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.id": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            }
+          }
+        },
+        "status": 200
+      }
+    }
+  ],
+  "metadata": {
+    "pactRust": {
+      "ffi": "0.4.27",
+      "models": "1.2.8"
+    },
+    "pactSpecification": {
+      "version": "3.0.0"
+    }
+  },
+  "provider": {
+    "name": "customer-provider"
+  }
+}
